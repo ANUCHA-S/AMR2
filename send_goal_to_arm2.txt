@@ -1,0 +1,105 @@
+#!/usr/bin/env python
+
+from __future__ import print_function 
+import rospy 
+import actionlib 
+from control_msgs.msg import FollowJointTrajectoryAction, FollowJointTrajectoryGoal 
+from std_msgs.msg import Float64 
+from trajectory_msgs.msg import JointTrajectoryPoint 
+
+from move_base_msgs.msg import MoveBaseAction, MoveBaseGoal, MoveBaseFeedback, MoveBaseResult
+ rospy.init_node('send_client_goal')
+
+client = actionlib.SimpleActionClient('/move_base', MoveBaseAction)
+rospy.loginfo("Waiting for move base server")
+client.wait_for_server()
+
+print('Select 0 for goto Bedroom')
+print('Select 1 for goto Living Room')
+print('Select 2 for goto Kitchen')
+print('Select 3 for goto Home')
+
+ 
+def move_robot_arm(joint_values):
+  arm_client = actionlib.SimpleActionClient('arm_controller/follow_joint_trajectory', FollowJointTrajectoryAction)
+  arm_client.wait_for_server()
+  arm_goal = FollowJointTrajectoryGoal()
+  arm_goal.trajectory.joint_names = ['arm_base_joint', 'shoulder_joint','bottom_wrist_joint' ,'elbow_joint', 'top_wrist_joint']
+  point = JointTrajectoryPoint()
+  point.positions = joint_values
+  point.time_from_start = rospy.Duration(3)
+  arm_goal.trajectory.points.append(point)
+  exec_timeout = rospy.Duration(10)
+  prmpt_timeout = rospy.Duration(5)
+   
+  arm_client.send_goal_and_wait(arm_goal, exec_timeout, prmpt_timeout)
+
+ waypoint = input("Location: ")
+ 
+
+ while not rospy.is_shutdown():    
+	if waypoint == 0:   
+            goal = MoveBaseGoal()
+            goal.target_pose.header.frame_id = 'odom'
+            goal.target_pose.header.stamp = rospy.Time.now()
+            goal.target_pose.pose.position.x = 0
+            goal.target_pose.pose.position.y = 0.5
+            goal.target_pose.pose.orientation.w = 0
+            goal.target_pose.pose.orientation.z = 1.0
+
+            move_robot_arm([-0.1, 0.5, 0.02, 0, 0])
+            
+            client.send_goal(goal)
+	    client.wait_for_result()
+            rospy.loginfo('Sending to Bedroom succeeded!')
+	    exit()
+
+       if waypoint == 1:   
+            goal = MoveBaseGoal()
+            goal.target_pose.header.frame_id = 'odom'
+            goal.target_pose.header.stamp = rospy.Time.now()
+            goal.target_pose.pose.position.x = 2
+            goal.target_pose.pose.position.y = 0.0
+            goal.target_pose.pose.orientation.w = 0
+            goal.target_pose.pose.orientation.z = 1.0
+
+            move_robot_arm([-0.1, 0.5, 0.02, 0, 0])
+            
+            client.send_goal(goal)
+	    client.wait_for_result()
+            rospy.loginfo('Sending to Living Room succeeded!')
+	    exit()
+
+        if waypoint == 2:   
+            goal = MoveBaseGoal()
+            goal.target_pose.header.frame_id = 'odom'
+            goal.target_pose.header.stamp = rospy.Time.now()
+            goal.target_pose.pose.position.x = 0
+            goal.target_pose.pose.position.y = -1.5
+            goal.target_pose.pose.orientation.w = 0
+            goal.target_pose.pose.orientation.z = 1.0
+
+            move_robot_arm([-0.1, 0.5, 0.02, 0, 0])
+            
+            client.send_goal(goal)
+	    client.wait_for_result()
+            rospy.loginfo('Sending to Kitchen succeeded!')
+	    exit()
+
+        if waypoint == 3:   
+            goal = MoveBaseGoal()
+            goal.target_pose.header.frame_id = 'odom'
+            goal.target_pose.header.stamp = rospy.Time.now()
+            goal.target_pose.pose.position.x = -2
+            goal.target_pose.pose.position.y = -0.5
+            goal.target_pose.pose.orientation.w = 0
+            goal.target_pose.pose.orientation.z = 1.0
+
+            move_robot_arm([0, 0, 0, 0, 0])
+            
+            client.send_goal(goal)
+	    client.wait_for_result()
+            rospy.loginfo('Sending to Home succeeded!')
+            exit()
+    
+
