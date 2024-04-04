@@ -1,0 +1,60 @@
+import rospy
+from move_base_msgs.msg import MoveBaseAction, MoveBaseGoal
+import actionlib
+
+# Action specification for move_base
+MoveBaseClient = actionlib.SimpleActionClient('move_base', MoveBaseAction)
+
+def main():
+    # Connect to ROS
+    rospy.init_node('simple_navigation_goals')
+
+    # Wait for the action server to come up
+    while not MoveBaseClient.wait_for_server(rospy.Duration(5.0)):
+        rospy.loginfo("Waiting for the move_base action server to come up")
+
+    # Ask the user where they want the robot to go
+    user_choice = int(input("\nWhere do you want the robot to go?\n\n1 = House 1\n2 = House 2\n3 = House 3\n4 = Post Office\n\nEnter a number: "))
+
+    # Create a new goal to send to move_base
+    goal = MoveBaseGoal()
+
+    # Set the goal pose
+    goal.target_pose.header.frame_id = "map"
+    goal.target_pose.header.stamp = rospy.Time.now()
+
+    # Set the goal position based on user choice
+    if user_choice == 1:
+        print("\nGoal Location: House 1\n")
+        goal.target_pose.pose.position.x = -15.04
+        goal.target_pose.pose.position.y = -7.42
+        goal.target_pose.pose.orientation.w = 1.0
+    elif user_choice == 2:
+        print("\nGoal Location: House 2\n")
+        goal.target_pose.pose.position.x = -14.25
+        goal.target_pose.pose.position.y = 20.02
+        goal.target_pose.pose.orientation.w = 1.0
+    elif user_choice == 3:
+        print("\nGoal Location: House 3\n")
+        goal.target_pose.pose.position.x = 7.35
+        goal.target_pose.pose.position.y = 20.17
+        goal.target_pose.pose.orientation.w = 1.0
+    else:
+        print("\nGoal Location: Post Office\n")
+        goal.target_pose.pose.position.x = 12.12
+        goal.target_pose.pose.position.y = -8.41
+        goal.target_pose.pose.orientation.w = 1.0
+
+    # Send the goal to the robot
+    rospy.loginfo("Sending goal")
+    MoveBaseClient.send_goal_and_wait(goal, rospy.Duration(180.0), rospy.Duration(180.0))
+
+    # Check the result
+    if MoveBaseClient.get_state() == actionlib.SimpleClientGoalState.SUCCEEDED:
+        rospy.loginfo("The robot has arrived at the goal location")
+    else:
+        rospy.loginfo("The robot may have failed to reach the goal location")
+
+if __name__ == '__main__':
+    main()
+
